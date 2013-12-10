@@ -2,7 +2,7 @@
 using namespace std;
 class Person{
 	string name;
-	int age;
+	int  age;
 public:
 	Person(){ cout<<this<<" "<<name<<" Person()"<<endl;}
 	Person(string name, int age):name(name),age(age){cout<<name<<" Person()"<<endl; }

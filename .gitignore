@@ -1,2 +1,6 @@
 output/
+*.o
+*.so
+*.a
+main
 a.out

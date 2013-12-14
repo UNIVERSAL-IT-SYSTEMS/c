@@ -19,5 +19,5 @@ libdemo2.so:$(OBJ2)
 main2.e:main.c libdemo2.so
 	@gcc main.c -ldemo2 -omain2.e -L.
 clean:
-	rm -f *.o *.so *.a *.e
+	rm -f *.o *.so *.a *.e a.out
 	@echo "${PATH}"

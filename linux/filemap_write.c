@@ -37,7 +37,13 @@ main()
 	scanf("%d",&(s[count].age));
 	printf("输入成绩：");
 	scanf("%f",&(s[count].score));
+	// ftruncate(fd,size+sizeof(struct stu));
 	// 卸载虚拟地址
 	munmap(s,sizeof(struct stu)+size);
+	//读取
+	// for(int i=0;i<count;i++)
+	// {
+		// printf("%s,\t,%d,\t,%f\n",s[i].name,s[i].age,s[i].score);
+	// }
 	close(fd);
 }

@@ -1,3 +1,5 @@
+curses:
+	gcc courses_addstr.c -ocurses.e -lcursesw
 .PHONY:clean#为目标
 OBJ=iotool_s.o graphic_s.o
 OBJ2=iotool.o graphic.o

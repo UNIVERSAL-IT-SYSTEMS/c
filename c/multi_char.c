@@ -12,7 +12,7 @@ int main()
 	struct lconv *lp =localeconv();
 	puts(lp->int_curr_symbol);
 	print_current_loc();
-	setlocale(LC_ALL, "chinese-simplified" );
+	setlocale(LC_ALL, "zh_CN.UTF8" );
 	lp =localeconv();
 	puts(lp->int_curr_symbol);
 	puts(lp->currency_symbol);

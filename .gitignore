@@ -1,4 +1,6 @@
 *.o
+*.e
+*.exe
 *.so
 *.a
 main1

@@ -1,6 +1,6 @@
-curses:Courses_CUI.c
-	gcc Courses_CUI.c -ocurses.e -lcursesw
-.PHONY:clean#为目标
+curses:
+	gcc curses/Courses_CUI.c -ocurses.e -lcursesw
+.PHONY:clean curses#为目标
 OBJ=iotool_s.o graphic_s.o
 OBJ2=iotool.o graphic.o
 demo:main1.e main2.e

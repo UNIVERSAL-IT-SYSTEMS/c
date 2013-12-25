@@ -1,4 +1,4 @@
-snake:Gluttonous_Snake.c
+snake:
 	@gcc Gluttonous_Snake.c -osnake.e -lcursesw
 debug1:
 	@gcc Gluttonous_Snake.c -osnake.e -lcursesw -DDEBUG=1

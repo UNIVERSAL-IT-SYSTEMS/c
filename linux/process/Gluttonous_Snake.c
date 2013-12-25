@@ -5,6 +5,7 @@
 #include <sys/mman.h> 
 #include <stdlib.h>
 #include <signal.h>
+#include <sys/wait.h>
 struct Coordinate{
 	int x;
 	int y;
@@ -34,9 +35,6 @@ struct Snake{
 	int length;			//长度
 	enum Direction dir;	//方向
 };
-
-
-WINDOW *win;
 struct Food *food;
 struct Snake *snake;
 int cid;
@@ -52,11 +50,44 @@ void debug();
 void snake_move();
 void keybordhit();
 void redraw();
+void recycle();
+void sigroutine(int s);
+void eat();
+void eat(){
+	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
+	sn->c.x=food->c.x;
+	sn->c.y=food->c.y;
+	sn->fur='@';
+	
+	struct Snake_Node *p=snake->head;
+	snake->head=sn;
+	sn->next=p;
+	snake->length++;
+}
+//ctrl+c退出父进程时产生SIGINT信号，子进程也会退出不会挂到init
+void sigroutine(int s) {
+	int status;
+	switch(s)
+	{
+		case SIGCHLD: //子进程退出或被kill时触发，父进程回收僵尸进程
+			
+			wait(&status);
+			// printf("回收完毕:%d!\n",WEXITSTATUS(status));
+			break;
+	}
+} 
+void recycle()
+{
+	munmap(snake,sizeof(struct Snake));
+	endwin();
+	kill(cid, SIGKILL);
+	exit(0);
+}
 void debug(const char *s)
 {
-	
+	//mvprintw(i++,1,"%d,%d",LINES,COLS);
 	#ifdef DEBUG
-		sleep(1);
+		//sleep(1);
 		if(DEBUG==1){
 			mvaddstr(i++,1,s);
 		}else{
@@ -69,10 +100,10 @@ void init_screen()
 {
 	
 	setlocale(LC_ALL, "zh_CN.utf8");
-	win=initscr();
+	initscr();
 	curs_set(0);//隐藏光标
-	box(win,0,0);//边框
-	noecho();
+	box(stdscr,0,'_');//边框
+	noecho();//不显示输入的字符
 	debug("init_screen");
 	init_food();
 	init_snake();
@@ -91,12 +122,12 @@ void draw_Snake_Node(struct Snake_Node *sn)
 void draw_snake()
 {
 	debug("draw_snake");
-	//mvprintw(i++,0,"snake head x is %d,y is %d",snake->head->c.x,snake->head->c.y);
-	//refresh();
-	int i;
-	for(i=0;i<snake->length;i++)
+	mvprintw(0,0,"snake %d",snake->length);
+	refresh();
+	struct Snake_Node *p;
+	for(p=snake->head;p!=NULL;p=p->next)
 	{
-		draw_Snake_Node(snake->head+i);
+		draw_Snake_Node(p);
 	}
 }
 
@@ -104,7 +135,8 @@ void init_food()
 {
 	debug("init_food");
 	//food=malloc(sizeof(struct Food));
-	food=mmap(0,sizeof(struct Food),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
+	// food=mmap(0,sizeof(struct Food),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
+	food=malloc(sizeof(struct Food));
 	food->c.x=20;
 	food->c.y=20;
 	food->ft=T1;
@@ -114,9 +146,10 @@ void init_snake()
 {
 	debug("init_snake");
 	//snake=malloc(sizeof(struct Snake));
-	snake=mmap((char *)food+sizeof(struct Food),sizeof(struct Snake),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
+	snake=mmap(0,sizeof(struct Snake),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
 	//struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
-	struct Snake_Node *sn=mmap((char *)snake+sizeof(struct Snake),sizeof(struct Snake_Node),PROT_READ|PROT_WRITE,MAP_ANONYMOUS|MAP_SHARED,0,0);
+	// struct Snake_Node *sn=mmap((char *)snake+sizeof(struct Snake),sizeof(struct Snake_Node),PROT_READ|PROT_WRITE,MAP_ANONYMOUS|MAP_SHARED,0,0);
+	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
 	sn->c.x=10;
 	sn->c.y=10;
 	sn->fur='@';
@@ -129,6 +162,7 @@ void init_snake()
 }
 void keybordhit()		//监控键盘
 {
+	debug("keybordhit");
 	while(1)
 	{
 		char ch=getch();
@@ -155,49 +189,78 @@ void keybordhit()		//监控键盘
 					snake->dir=RIGHT;
 				break;
 			case 'q':
-				munmap(food,sizeof(struct Food)+sizeof(struct Snake)+snake->length*sizeof(struct Snake_Node));
-				endwin();
-				kill(cid, SIGKILL);
-				exit(0);
+				recycle();
 			default:break;
 		}
 	}
 }
 void snake_move()
 {
+	debug("snake_move");
 	struct Snake_Node *p=snake->head;
 	switch(snake->dir){
 		case LEFT:
-			snake->head->c.x--;
-			while(p->next)
+			if(food->c.x==p->c.x-1&&food->c.y==p->c.y){
+				eat();
+				food->c.x=13;
+				food->c.y=16;
+			}
+			else if(p->c.x>1)
 			{
-				p->next->c=p->c;
-				p=p->next;
+				p->c.x--;
+				while(p->next)
+				{
+					p->next->c=p->c;
+					p=p->next;
+				}
 			}
 			break;
 		case RIGHT:
-			snake->head->c.x++;
-			while(p->next)
-			{
-				p->next->c=p->c;
-				p=p->next;
+			if(food->c.x==p->c.x+1&&food->c.y==p->c.y){
+				eat();
+				food->c.x=17;
+				food->c.y=18;	
 			}
-
+			else if(p->c.x<COLS-2)
+			{
+				p->c.x++;
+				while(p->next)
+				{
+					p->next->c=p->c;
+					p=p->next;
+				}
+			}
 			break;
 		case UP:
-			snake->head->c.y--;
-			while(p->next)
+			if(food->c.x==p->c.x&&food->c.y==p->c.y-1){
+				eat();
+				food->c.x=19;
+				food->c.y=10;
+			}
+			else if(p->c.y>1)
 			{
-				p->next->c=p->c;
-				p=p->next;
+				p->c.y--;
+				while(p->next)
+				{
+					p->next->c=p->c;
+					p=p->next;
+				}
 			}
 			break;
 		case DOWN:
-			snake->head->c.y++;
-			while(p->next)
+			if(food->c.x==p->c.x&&food->c.y==p->c.y+1){
+				eat();
+				food->c.x=11;
+				food->c.y=12;
+			}
+			else if(p->c.y<LINES-2)
 			{
-				p->next->c=p->c;
-				p=p->next;
+				p->c.y++;
+				while(p->next)
+				{
+					p->next->c=p->c;
+					p=p->next;
+				}
 			}
 			break;
 		default:
@@ -207,14 +270,17 @@ void snake_move()
 void redraw()
 {
 	clear();
+	border(0,0,'$','$','$','$','$','$');
 	draw_snake();
 	draw(food->c,food->ft);
 	refresh();
 }
+
+
 int main()
 {
+	signal(SIGCHLD,sigroutine);
 	init_screen();
-
 	if(cid=fork())
 	{
 		keybordhit();
@@ -224,9 +290,25 @@ int main()
 		while(1){
 			snake_move();
 			redraw();
-			usleep(100000);
+			usleep(200000);
 		}		
 	}
 	
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <time.h>
 struct Coordinate{
 	int x;
 	int y;
@@ -59,6 +60,19 @@ void recycle();
 void sigroutine(int s);
 void eat();
 void trans_tail_to_head();
+void general_food();
+void general_food()
+{
+	static i=1;
+	if(i){
+		srand((unsigned)time(NULL));
+		i=0;
+	}
+	food->c.x=rand()%(COLS-2)+1;
+	food->c.y=rand()%(LINES-3)+2;
+}
+
+
 void trans_tail_to_head()
 {
 	snake->head->next=snake->tail;	
@@ -77,6 +91,7 @@ void eat(){
 	snake->head->next=sn;
 	snake->head=sn;
 	snake->length++;
+	general_food();
 }
 //ctrl+c退出父进程时产生SIGINT信号，子进程也会退出不会挂到init
 void sigroutine(int s) {
@@ -266,8 +281,6 @@ void snake_move()
 		case LEFT:
 			if(fc.x==c.x-1&&fc.y==c.y){
 				eat();
-				food->c.x=13;
-				food->c.y=16;
 			}
 			else if(c.x>1)
 			{
@@ -278,9 +291,7 @@ void snake_move()
 			break;
 		case RIGHT:
 			if(fc.x==c.x+1&&fc.y==c.y){
-				eat();
-				food->c.x=17;
-				food->c.y=18;	
+				eat();	
 			}
 			else if(c.x<COLS-2)
 			{
@@ -292,8 +303,6 @@ void snake_move()
 		case UP:
 			if(fc.x==c.x&&fc.y==c.y-1){
 				eat();
-				food->c.x=19;
-				food->c.y=10;
 			}
 			else if(c.y>1)
 			{
@@ -305,8 +314,6 @@ void snake_move()
 		case DOWN:
 			if(fc.x==c.x&&fc.y==c.y+1){
 				eat();
-				food->c.x=11;
-				food->c.y=12;
 			}
 			else if(c.y<LINES-2)
 			{

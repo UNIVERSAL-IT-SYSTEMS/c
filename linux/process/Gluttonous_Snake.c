@@ -147,7 +147,7 @@ void draw_Snake_Node(struct Snake_Node *sn)
 void draw_snake()
 {
 	debug("draw_snake");
-	mvprintw(0,0,"score is %d, speed is %d",snake->length,*speed);
+	mvprintw(1,1,"score is %d, speed is %d",snake->length,*speed);
 	refresh();
 	#ifdef DEBUG
 		wrefresh(boderwin);
@@ -181,7 +181,7 @@ void init_snake()
 	
 	*stop=0;
 	*pause_game=0;
-	*speed=100000;
+	*speed=1;
 	//struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
 	// struct Snake_Node *sn=mmap((char *)snake+sizeof(struct Snake),sizeof(struct Snake_Node),PROT_READ|PROT_WRITE,MAP_ANONYMOUS|MAP_SHARED,0,0);
 	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
@@ -247,10 +247,11 @@ void keybordhit()		//监控键盘
 				*stop=1;
 				break;
 			case 'l':
-				*speed+=1000;
+				
+				*speed=*speed+1>10?10:*speed+1;
 				break;
 			case 'k':
-				*speed-=1000;
+				*speed=*speed-1<=0?1:*speed-1;
 				break;
 			default:break;
 		}
@@ -357,7 +358,7 @@ int main()
 			}
 			snake_move();
 			redraw();
-			usleep(*speed);
+			usleep(100000-*speed*5000>0?100000-*speed*5000:10000);
 		}		
 	}
 	return 0;

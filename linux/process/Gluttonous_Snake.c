@@ -42,6 +42,8 @@ int *pause_game;
 int *speed;
 int cid;
 int i=0;
+WINDOW *debugwin;
+WINDOW *boderwin;
 void init_screen();
 void draw(struct Coordinate co, chtype c);
 void draw_Snake_Node(struct Snake_Node *sn);
@@ -63,6 +65,7 @@ void trans_tail_to_head()
 	snake->tail=snake->tail->next;
 	snake->head=snake->head->next;
 	snake->head->next=NULL;
+	snake->head->fur='*';
 }
 void eat(){
 	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
@@ -88,38 +91,44 @@ void sigroutine(int s) {
 } 
 void recycle()
 {
-
-	free(food);
-	struct Snake_Node *p;
-	for(p=snake->tail;p!=NULL;p=p->next)
-	{
-		free(p);
-	}
-	munmap(snake,sizeof(struct Snake)+sizeof(int)*3);
-	endwin();
 	kill(cid, SIGKILL);
+	free(food);
+	// struct Snake_Node *p;
+	// for(p=snake->tail;p!=NULL;p=p->next)
+	// {
+		// free(p);
+	// }
+	munmap((void *)snake,sizeof(struct Snake)+sizeof(int)*3);
+	endwin();
 	exit(0);
 }
 void debug(const char *s)
-{
-	//mvprintw(i++,1,"%d,%d",LINES,COLS);
+{	
 	#ifdef DEBUG
-		//sleep(1);
+
+		boderwin=derwin(stdscr,30,20,1,(COLS-21));
+		debugwin=derwin(boderwin,28,18,1,1);
+		box(boderwin,0,0);
 		if(DEBUG==1){
-			mvaddstr(i++,1,s);
+			wmove(debugwin,0,0);
+			// mvwaddstr(debugwin,0,0,"          ");
+			wdeleteln(debugwin);
+			mvwaddstr(debugwin,27,0,s);
 		}else{
-			mvaddstr(0,1,s);
+			mvwaddstr(debugwin,0,1,s);
 		}
 		refresh();
+		wrefresh(boderwin);
+		wrefresh(debugwin);
 	#endif
 }
 void init_screen()
 {
-	
 	setlocale(LC_ALL, "zh_CN.utf8");
 	initscr();
 	curs_set(0);//隐藏光标
-	box(stdscr,0,'_');//边框
+	// box(stdscr,0,'_');//边框
+	border(0,0,'$','$','$','$','$','$');
 	noecho();//不显示输入的字符
 	debug("init_screen");
 	init_food();
@@ -140,6 +149,10 @@ void draw_snake()
 	debug("draw_snake");
 	mvprintw(0,0,"score is %d, speed is %d",snake->length,*speed);
 	refresh();
+	#ifdef DEBUG
+		wrefresh(boderwin);
+		wrefresh(debugwin);
+	#endif
 	struct Snake_Node *p;
 	for(p=snake->tail;p!=NULL;p=p->next)
 	{
@@ -174,10 +187,9 @@ void init_snake()
 	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
 	sn->c.x=10;
 	sn->c.y=10;
-	sn->fur='@';
+	sn->fur='*';
 	sn->next=NULL;
 	snake->head=sn;
-	
 	
 	snake->tail=sn;
 	snake->length=1;
@@ -213,11 +225,11 @@ void keybordhit()		//监控键盘
 					snake->dir=RIGHT;
 				break;
 			case 'q':
-				*pause_game=1;
-				attron(A_UNDERLINE);
-				mvprintw(9,40,"Are you sure?");
-				attroff(A_UNDERLINE);
-				refresh();
+				*pause_game=2;
+				while(*pause_game!=3)
+				{
+					usleep(1000);
+				}
 				char c =getch();
 				if(c=='y'){
 					recycle();
@@ -313,6 +325,10 @@ void redraw()
 	draw_snake();
 	draw(food->c,food->ft);
 	refresh();
+	#ifdef DEBUG
+		wrefresh(boderwin);
+		wrefresh(debugwin);
+	#endif
 }
 
 
@@ -327,13 +343,15 @@ int main()
 	else
 	{
 		while(!*stop){
-			if(*pause_game)
+			if(*pause_game==1||*pause_game==2||*pause_game==3)
 			{
-				attron(A_UNDERLINE);
-				mvprintw(8,40,"pause");
-				refresh();
-				attroff(A_UNDERLINE);
-				mvprintw(8,40,"pause");
+				if(*pause_game==2||*pause_game==3)
+				{
+					*pause_game=3;
+					mvprintw(8,40,"Are you sure?[y or n]:");
+				}else{
+					mvprintw(8,40,"pause!");
+				}
 				refresh();
 				continue;
 			}

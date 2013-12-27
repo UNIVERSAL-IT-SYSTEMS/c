@@ -63,8 +63,10 @@ void trans_tail_to_head();
 void general_food();
 void general_food()
 {
+	debug("general_food");
 	static i=1;
 	if(i){
+		debug("i");
 		srand((unsigned)time(NULL));
 		i=0;
 	}
@@ -75,13 +77,16 @@ void general_food()
 
 void trans_tail_to_head()
 {
+	debug("trans_tail_to_head");
 	snake->head->next=snake->tail;	
 	snake->tail=snake->tail->next;
 	snake->head=snake->head->next;
 	snake->head->next=NULL;
 	snake->head->fur='*';
 }
-void eat(){
+void eat()
+{
+	debug("eat");
 	struct Snake_Node *sn=malloc(sizeof(struct Snake_Node));
 	sn->c.x=food->c.x;
 	sn->c.y=food->c.y;
@@ -94,7 +99,8 @@ void eat(){
 	general_food();
 }
 //ctrl+c退出父进程时产生SIGINT信号，子进程也会退出不会挂到init
-void sigroutine(int s) {
+void sigroutine(int s) 
+{
 	int status;
 	switch(s)
 	{
@@ -106,6 +112,7 @@ void sigroutine(int s) {
 } 
 void recycle()
 {
+	debug("recycle");
 	kill(cid, SIGKILL);
 	free(food);
 	// struct Snake_Node *p;
@@ -120,7 +127,6 @@ void recycle()
 void debug(const char *s)
 {	
 	#ifdef DEBUG
-
 		boderwin=derwin(stdscr,30,20,1,(COLS-21));
 		debugwin=derwin(boderwin,28,18,1,1);
 		box(boderwin,0,0);
@@ -328,6 +334,7 @@ void snake_move()
 }
 void redraw()
 {
+	debug("redraw");
 	clear();
 	border(0,0,'$','$','$','$','$','$');
 	draw_snake();

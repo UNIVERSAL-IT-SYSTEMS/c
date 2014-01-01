@@ -5,7 +5,7 @@
 main()
 {
 	printf("caller's pid:%d\n",getpid());
-	FILE *f=popen("./callee","r");
+	FILE *f=popen("./callee.e","r");
 	int fd=fileno(f);//转换为文件描述符；
 	printf("fd:%d\n",fd);
 	char buf[1025];

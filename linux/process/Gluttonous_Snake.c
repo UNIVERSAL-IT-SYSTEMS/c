@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <time.h>
+#define MAIN_COLS  COLS-22
+#define MAIN_LINES LINES
 struct Coordinate{
 	int x;
 	int y;
@@ -42,9 +44,9 @@ int *stop;
 int *pause_game;
 int *speed;
 int cid;
-int i=0;
 WINDOW *debugwin;
 WINDOW *boderwin;
+WINDOW *mainwin;
 void init_screen();
 void draw(struct Coordinate co, chtype c);
 void draw_Snake_Node(struct Snake_Node *sn);
@@ -66,12 +68,11 @@ void general_food()
 	debug("general_food");
 	static i=1;
 	if(i){
-		debug("i");
 		srand((unsigned)time(NULL));
 		i=0;
 	}
-	food->c.x=rand()%(COLS-2)+1;
-	food->c.y=rand()%(LINES-3)+2;
+	food->c.x=rand()%(MAIN_COLS-2)+1;
+	food->c.y=rand()%(MAIN_LINES-3)+2;
 }
 
 
@@ -126,19 +127,32 @@ void recycle()
 }
 void debug(const char *s)
 {	
+	usleep(100000);
 	#ifdef DEBUG
-		boderwin=derwin(stdscr,30,20,1,(COLS-21));
-		debugwin=derwin(boderwin,28,18,1,1);
-		box(boderwin,0,0);
-		if(DEBUG==1){
-			wmove(debugwin,0,0);
-			// mvwaddstr(debugwin,0,0,"          ");
-			wdeleteln(debugwin);
-			mvwaddstr(debugwin,27,0,s);
-		}else{
-			mvwaddstr(debugwin,0,1,s);
+		static int f=1;
+		static int i=0;
+		if(f)
+		{
+			boderwin=derwin(stdscr,30,20,1,(COLS-21));
+			debugwin=derwin(boderwin,28,18,1,1);
+			f=0;
 		}
-		refresh();
+		box(boderwin,0,0);
+		// box(debugwin,0,0);
+		if(DEBUG==1){
+			if(i<27)
+			{
+				mvwaddstr(debugwin,i++,0,s);
+			}else
+			{
+				wmove(debugwin,0,0);
+				wdeleteln(debugwin);
+				mvwaddstr(debugwin,27,0,s);
+			}
+		}else{
+			//mvwaddstr(debugwin,0,1,s);
+		}
+		wrefresh(mainwin);
 		wrefresh(boderwin);
 		wrefresh(debugwin);
 	#endif
@@ -147,9 +161,10 @@ void init_screen()
 {
 	setlocale(LC_ALL, "zh_CN.utf8");
 	initscr();
+	mainwin=derwin(stdscr,MAIN_LINES,MAIN_COLS,0,0);
 	curs_set(0);//隐藏光标
 	// box(stdscr,0,'_');//边框
-	border(0,0,'$','$','$','$','$','$');
+	wborder(mainwin,0,0,'$','$','$','$','$','$');
 	noecho();//不显示输入的字符
 	debug("init_screen");
 	init_food();
@@ -157,23 +172,19 @@ void init_screen()
 }
 void draw(struct Coordinate co,chtype c)
 {
-	debug("draw");
-	mvaddch(co.y,co.x,c);//在指定位置显示字符
+	// debug("draw");
+	mvwaddch(mainwin,co.y,co.x,c);//在指定位置显示字符
 }
 void draw_Snake_Node(struct Snake_Node *sn)
 {
-	debug("draw_Snake_Node");
+	// debug("draw_Snake_Node");
 	draw(sn->c,sn->fur);
 }
 void draw_snake()
 {
 	debug("draw_snake");
-	mvprintw(1,1,"score is %d, speed is %d",snake->length,*speed);
-	refresh();
-	#ifdef DEBUG
-		wrefresh(boderwin);
-		wrefresh(debugwin);
-	#endif
+	mvwprintw(mainwin,1,1,"score is %d, speed is %d",snake->length,*speed);
+	wrefresh(mainwin);
 	struct Snake_Node *p;
 	for(p=snake->tail;p!=NULL;p=p->next)
 	{
@@ -299,7 +310,7 @@ void snake_move()
 			if(fc.x==c.x+1&&fc.y==c.y){
 				eat();	
 			}
-			else if(c.x<COLS-2)
+			else if(c.x<MAIN_COLS-2)
 			{
 				snake->tail->c.x=c.x+1;
 				snake->tail->c.y=c.y;
@@ -321,7 +332,7 @@ void snake_move()
 			if(fc.x==c.x&&fc.y==c.y+1){
 				eat();
 			}
-			else if(c.y<LINES-2)
+			else if(c.y<MAIN_LINES-2)
 			{
 				snake->tail->c.x=c.x;
 				snake->tail->c.y=c.y+1;
@@ -335,15 +346,12 @@ void snake_move()
 void redraw()
 {
 	debug("redraw");
-	clear();
-	border(0,0,'$','$','$','$','$','$');
+	// clear();
+	wclear(mainwin);
+	wborder(mainwin,0,0,'$','$','$','$','$','$');
 	draw_snake();
 	draw(food->c,food->ft);
-	refresh();
-	#ifdef DEBUG
-		wrefresh(boderwin);
-		wrefresh(debugwin);
-	#endif
+	wrefresh(mainwin);
 }
 
 
@@ -363,11 +371,11 @@ int main()
 				if(*pause_game==2||*pause_game==3)
 				{
 					*pause_game=3;
-					mvprintw(8,40,"Are you sure?[y or n]:");
+					mvwprintw(mainwin,8,40,"Are you sure?[y or n]:");
 				}else{
-					mvprintw(8,40,"pause!");
+					mvwprintw(mainwin,8,40,"pause!");
 				}
-				refresh();
+				wrefresh(mainwin);
 				continue;
 			}
 			snake_move();

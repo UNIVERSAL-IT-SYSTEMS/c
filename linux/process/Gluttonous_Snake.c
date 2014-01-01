@@ -127,8 +127,9 @@ void recycle()
 }
 void debug(const char *s)
 {	
-	usleep(100000);
+	
 	#ifdef DEBUG
+		usleep(100000);
 		static int f=1;
 		static int i=0;
 		if(f)
@@ -371,9 +372,9 @@ int main()
 				if(*pause_game==2||*pause_game==3)
 				{
 					*pause_game=3;
-					mvwprintw(mainwin,8,40,"Are you sure?[y or n]:");
+					mvwprintw(mainwin,8,10,"Are you sure?[y or n]:");
 				}else{
-					mvwprintw(mainwin,8,40,"pause!");
+					mvwprintw(mainwin,8,10,"pause!");
 				}
 				wrefresh(mainwin);
 				continue;

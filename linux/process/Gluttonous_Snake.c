@@ -261,7 +261,7 @@ void keybordhit()		//监控键盘
 				*pause_game=2;
 				while(*pause_game!=3)
 				{
-					usleep(1000);
+					usleep(100);//可换成信号方式
 				}
 				char c =getch();
 				if(c=='y'){
@@ -273,6 +273,10 @@ void keybordhit()		//监控键盘
 				break;
 			case 'p':
 				*pause_game=1;
+				while(*pause_game!=4)
+				{
+					usleep(100);//可换成信号方式
+				}
 				getch();
 				*pause_game=0;
 				break;
@@ -367,13 +371,14 @@ int main()
 	else
 	{
 		while(!*stop){
-			if(*pause_game==1||*pause_game==2||*pause_game==3)
+			if(*pause_game==1||*pause_game==2||*pause_game==3||*pause_game==4)
 			{
 				if(*pause_game==2||*pause_game==3)
 				{
 					*pause_game=3;
 					mvwprintw(mainwin,8,10,"Are you sure?[y or n]:");
 				}else{
+					*pause_game=4;
 					mvwprintw(mainwin,8,10,"pause!");
 				}
 				wrefresh(mainwin);

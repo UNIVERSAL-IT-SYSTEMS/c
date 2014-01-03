@@ -15,3 +15,20 @@
 	2.5设置建议锁(默认),加了锁别人也能访问，别人只是能判定
 	2.6设置的信号
 */
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+main()
+{
+	if(fork())
+	{
+		struct flock lk;
+		int fd=open("a.txt",O_RDWR);	
+		if(fd==-1)printf("open error:%m\n"),exit(-1);
+		
+	}
+	else
+	{
+	}	
+}

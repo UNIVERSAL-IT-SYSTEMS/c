@@ -109,6 +109,9 @@ void sigroutine(int s)
 			wait(&status);
 			// printf("回收完毕:%d!\n",WEXITSTATUS(status));
 			break;
+		case SIGINT:
+			//do nothing
+			break;
 	}
 } 
 void recycle()
@@ -163,6 +166,8 @@ void init_screen()
 	setlocale(LC_ALL, "zh_CN.utf8");
 	initscr();
 	mainwin=derwin(stdscr,MAIN_LINES,MAIN_COLS,0,0);
+	// keypad(stdscr,FALSE);
+	// keypad(mainwin,FALSE);
 	curs_set(0);//隐藏光标
 	// box(stdscr,0,'_');//边框
 	wborder(mainwin,0,0,'$','$','$','$','$','$');
@@ -363,6 +368,7 @@ void redraw()
 int main()
 {
 	signal(SIGCHLD,sigroutine);
+	signal(SIGINT,sigroutine);
 	init_screen();
 	if(cid=fork())
 	{

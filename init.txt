@@ -1,0 +1,69 @@
+1、安装rhel6.4
+   详情见~/anaconda-ks.cfg和install.log、install.log.syslog
+2、配置网络
+   NAT模式，手动更改/etc/sysconfig/network-scripts/ifcfg-eth0
+   DEVICE=eth0
+   HWADDR=00:0C:29:50:EE:A3
+   TYPE=Ethernet
+   UUID=b6aff4f7-cb4c-44ab-b167-292dff1f7851
+   ONBOOT=yes
+   NM_CONTROLLED=yes
+   BOOTPROTO=static
+   IPADDR=192.168.47.4
+   NETMASK=255.255.255.0
+   #BROADCAST=192.168.47.255
+   GATEWAY=192.168.47.2
+   DNS1=202.106.46.151
+   DNS2=8.8.8.8
+3、配置光盘yum
+   a、mount /dev/cdrom /mnt/cdrom
+      (或将iso文件copy到文件系统后挂载iso文件：mount -t iso9660 -o loop /repo/iso/rhel-server-6.0-x86_64-dvd.iso /repo/rhel6)
+      (umount /mnt 卸载)
+   c、vim cdrom.repo：
+      [Server]
+      name=cdromserver
+      baseurl=file:///mnt/cdrom
+      enable=1
+      gpcheck=1
+      gpgkey=file:///mnt/cdrom/RPM-GPG-KEY-redhat-release
+   d、rpm --import /mnt/cdrom/RPM-GPG-KEY*
+4、163CentOSyum源
+   a、cd /
+   b、wget http://mirrors.163.com/.help/CentOS6-Base-163.repo
+   c、vim CentOS6-Base-163.repo
+  
+   d、cd /etc/pki/rpm-gpg/
+      wget http://mirrors.sohu.com/centos/RPM-GPG-KEY-CentOS-6
+      rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+   e、替换
+      :%s/$releasever/6/g
+      :%s/^g.*6$/gpgkey=file:\/\/\/etc\/pki\/rpm-gpg\/RPM-GPG-KEY-CentOS-6/g
+   f、yum clean all
+      yum makecache
+      yum -y update
+5、yum install gcc
+   
+6、修改语言环境
+   如果说，你安装系统的时候，选择了中文语言包的支持的话，那么系统会以中文显示。如果在终端使用的话，有点不方便，告别是用yum group*这些命令的时候，可能无法安装。echo $LANG
+   解决的办法就是编辑
+   /etc/sysconfig/i18n
+   把zh_CN换成en_US LANG="en_US.UTF-8" 然后执行一次下面的命令 source /etc/sysconfig/i18n
+   [root@linuxso.com ~]# echo $LANG
+   en_US.UTF-8
+7、同步时间
+   /usr/sbin/ntpdate  133.100.11.8
+   hwclock --systohc  
+8、替换openjdk为sun的
+    rpm -qa|grep java
+    rpm -e --nodeps java-1.6.0-openjdk-1.6.0.0-1.62.1.11.11.90.el6_4.x86_64 
+    rpm -e --nodeps java-1.7.0-openjdk-1.7.0.25-2.3.10.4.el6_4.x86_64 
+    rpm -e --nodeps tzdata-java-2013c-2.el6.noarch 
+    
+    yum -y list java* 
+    下载oracle的jdk1.7上传并安装
+    rpm -ivh jdk-*.rpm
+    修改/etc/profile:
+    export JAVA_HOME=/usr/java/default
+    export PATH=$PATH:$JAVA_HOME/bin
+    
+    pwd -P 查物理路径避免符合链接

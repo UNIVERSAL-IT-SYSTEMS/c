@@ -66,7 +66,7 @@ void general_food();
 void general_food()
 {
 	debug("general_food");
-	static i=1;
+	static int i=1;
 	if(i){
 		srand((unsigned)time(NULL));
 		i=0;
@@ -212,10 +212,10 @@ void init_snake()
 {
 	debug("init_snake");
 	//snake=malloc(sizeof(struct Snake));
-	snake=mmap(0,sizeof(struct Snake),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
-	stop=mmap(snake,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
-	pause_game=mmap(stop,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
-	speed=mmap(pause_game,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_SHARED,0,0);
+	snake=mmap(0,sizeof(struct Snake),PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED,0,0);
+	stop=mmap(snake,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED,0,0);
+	pause_game=mmap(stop,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED,0,0);
+	speed=mmap(pause_game,sizeof(int),PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED,0,0);
 	
 	*stop=0;
 	*pause_game=0;

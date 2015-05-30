@@ -1,7 +1,7 @@
 snake:
-	@gcc Gluttonous_Snake.c -osnake.e -lcursesw
+	@gcc Gluttonous_Snake.c -osnake.e -lncurses
 debug1:
-	@gcc Gluttonous_Snake.c -osnake.e -lcursesw -DDEBUG=1
+	@gcc Gluttonous_Snake.c -osnake.e -lncurses -DDEBUG=1
 debug2:
-	@gcc Gluttonous_Snake.c -osnake.e -lcursesw -DDEBUG=2
+	@gcc Gluttonous_Snake.c -osnake.e -lncurses -DDEBUG=2
 	
